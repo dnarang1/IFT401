@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+<!-- Extending the base template (base.html) for consistent layout -->
+
+{% block title %}Admin Page{% endblock %}
+<!-- Setting the title of the admin page to "Admin Page" -->
+
+{% block content %}
+<!-- Main container for the Admin Control Panel -->
+<div class="container mt-4 text-center">  <!-- Aligns text in the center -->
+    <h1>Admin Control Panel</h1>
+    <p>Welcome, admin! Manage the platform using the controls below.</p>
+</div>
+
+<!-- Main admin functionality sections -->
+<div class="container mt-4">
+    <div class="row">
+        <!-- Manage Users Section -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4>Manage Users</h4>
+                    <ul>
+                        <li><a href="#">View all users</a></li>
+                        <li><a href="#">Edit user details</a></li>
+                        <li><a href="#">Reset user passwords</a></li>
+                        <li><a href="#">Approve/Disable user accounts</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Stocks Section -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4>Manage Stocks</h4>
+                    <ul>
+                        <li><a href="#">Add new stocks</a></li>
+                        <li><a href="#">Edit stock details</a></li>
+                        <li><a href="#">Remove stocks</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Review Transactions Section -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4>Review Transactions</h4>
+                    <ul>
+                        <li><a href="#">View recent transactions</a></li>
+                        <li><a href="#">Flag suspicious transactions</a></li>
+                        <li><a href="#">Export transaction history</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Adjust User Balances Section -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4>Adjust User Balances</h4>
+                    <ul>
+                        <li><a href="#">Manually add/deduct cash</a></li>
+                        <li><a href="#">Lock/Unlock user accounts</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Generate Reports Section -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4>Generate Reports</h4>
+                    <ul>
+                        <li><a href="#">View stock performance reports</a></li>
+                        <li><a href="#">View financial summaries</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Site Settings Section -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4>Site Settings</h4>
+                    <ul>
+                        <li><a href="#">Adjust platform settings</a></li>
+                        <li><a href="#">Set buy/sell limits</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+<!-- End of content block -->
+
