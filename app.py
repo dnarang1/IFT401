@@ -1,6 +1,58 @@
 from flask import Flask, render_template, redirect, url_for, request, flash
 from datetime import datetime  # Import datetime
 
+
+from flask_sqlalchemy import SQLAlchemy
+app.config['SQLALCHEMY_DATABASE_URI'] ='mysql+pymysql://root:password@localhost/projdbv1'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+#define tables
+class users(db.Model):
+    __tablename__ = 'users'
+    user_email = db.Column(db.String(128), primary_key=True)
+    fname = db.Column(db.String(128), nullable=False)
+    lname = db.Column(db.String(128), nullable=False)
+    isadmin = db.Column(db.Boolean)
+    cash = db.Column(db.DECIMAL(10,2), nullable=False)
+    password = db.Column(db.String(128), nullable=False)
+
+class User_Stock(db.Model):
+    __tablename__ = 'user_stock'
+    id = db.Column(db.Integer, primary_key=True)
+    user_email = db.Column(db.String(128), db.ForeignKey('users.user_email'))
+    stock_ticker = db.Column(db.CHAR(5), db.ForeignKey('market_stock.stock_ticker'))
+    user_quantity = db.Column(db.Integer, nullable=False)
+
+class User_Transactions(db.Model):
+    __tablename__ = 'user_transactions'
+    transaction_number = db.Column(db.Integer, primary_key=True)
+    stock_ticker = db.Column(db.CHAR(5), db.ForeignKey('market_stock.stock_ticker'))
+    Sell_Buy = db.Column(db.Boolean)
+    price_at_purchase = db.Column(db.DECIMAL(10,2), nullable=False)
+    purchase_quantity = db.Column(db.Integer, nullable=False)
+    user_email = db.Column(db.String(128), db.ForeignKey('users.user_email'))
+
+class Market_Stock(db.Model):
+    __tablename__ = 'market_stock'
+    stock_ticker = db.Column(db.CHAR(5), primary_key=True)
+    stock_name = db.Column(db.String(128), nullable=False)
+    stock_quantity= db.Column(db.Integer, nullable=False)
+    stock_price = db.Column(db.DECIMAL(10,2), nullable=False)
+
+class Market(db.Model):
+    __tablename__ = 'market'
+    DOY = db.Column(db.Integer, primary_key=True)
+    isOpen = db.Column(db.Boolean)
+    openHour = db.Column(db.Integer, nullable=False)
+    closeHour = db.Column(db.Integer, nullable=False)
+
+
+@app.route('/createdb')
+def creDB():
+    db.create_all()
+    return "Createed product databa"
+
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
