@@ -10,7 +10,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 #define tables
-class users(db.Model):
+class Users(db.Model):
     __tablename__ = 'users'
     user_email = db.Column(db.String(128), primary_key=True)
     fname = db.Column(db.String(128), nullable=False)
@@ -30,7 +30,7 @@ class User_Transactions(db.Model):
     __tablename__ = 'user_transactions'
     transaction_number = db.Column(db.Integer, primary_key=True)
     stock_ticker = db.Column(db.CHAR(5), db.ForeignKey('market_stock.stock_ticker'))
-    Sell_Buy = db.Column(db.Boolean)
+    sell_buy = db.Column(db.Boolean)
     price_at_purchase = db.Column(db.DECIMAL(10,2), nullable=False)
     purchase_quantity = db.Column(db.Integer, nullable=False)
     user_email = db.Column(db.String(128), db.ForeignKey('users.user_email'))
@@ -54,8 +54,6 @@ class Market(db.Model):
 def creDB():
     db.create_all()
     return "Createed product databa"
-
-
 
 @app.route('/')
 def home():
