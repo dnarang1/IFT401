@@ -5,7 +5,7 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
 from flask_sqlalchemy import SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] ='mysql+pymysql://root:password@localhost/projdbv1'
+app.config['SQLALCHEMY_DATABASE_URI'] ='mysql+pymysql://root:password@localhost/superstocks'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
