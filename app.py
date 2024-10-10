@@ -1,6 +1,8 @@
 from flask import Flask, render_template, redirect, url_for, request, flash
 from datetime import datetime  # Import datetime
 
+app = Flask(__name__)
+app.secret_key = 'your_secret_key_here'
 
 from flask_sqlalchemy import SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] ='mysql+pymysql://root:password@localhost/projdbv1'
@@ -53,8 +55,7 @@ def creDB():
     db.create_all()
     return "Createed product databa"
 
-app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'
+
 
 @app.route('/')
 def home():
