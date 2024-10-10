@@ -41,6 +41,8 @@ class Market_Stock(db.Model):
     stock_name = db.Column(db.String(128), nullable=False)
     stock_quantity= db.Column(db.Integer, nullable=False)
     stock_price = db.Column(db.DECIMAL(10,2), nullable=False)
+    market_high = db.Column(db.DECIMAL(10,2), nullable=False)
+    market_low = db.Column(db.DECIMAL(10,2), nullable=False)
 
 class Market(db.Model):
     __tablename__ = 'market'
@@ -79,6 +81,7 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        #new_user = Users(username=user_email,)
         flash(f'Registration successful for {username}', 'success')
         return redirect(url_for('home'))
     return render_template('register.html')
@@ -94,6 +97,7 @@ def contact():
 @app.route('/dashboard')
 def dashboard_view():
     username = "Test User"
+    #sql call for cash value
     cash = 1000  # Placeholder for current cash
     return render_template('dashboard.html', username=username, cash=cash)
 
@@ -105,7 +109,6 @@ def buy_stocks():
 def add_cash():
     username = "Test User"
     current_cash = 1000.00
-
     if request.method == 'POST':
         amount = float(request.form['amount'])
         import random
