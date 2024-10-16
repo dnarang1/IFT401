@@ -1,5 +1,10 @@
 from flask import Flask, render_template, redirect, url_for, request, flash
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import FlaskForm
+from wtforms import StringField, FloatField, IntegerField, SubmitField
+from wtforms.validators import DataRequired
 from datetime import datetime  # Import datetime
+import sys
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
@@ -67,11 +72,20 @@ def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        # Placeholder login logic
-        if email == "test@example.com" and password == "password123":
+
+        #login logic
+        #print(email)
+        #print(password)
+        row = db.session.query(Users).filter(
+            Users.user_email == email,
+            Users.password == password
+        ).first()
+        if row:
+            print("user exists")
             flash('Login successful', 'success')
-            return redirect(url_for('dashboard_view', username="Test User"))
+            return redirect(url_for('dashboard_view', username=email))
         else:
+            print("not found")
             flash('Login failed. Check your email or password.', 'danger')
             return redirect(url_for('login'))
     return render_template('home.html')
@@ -80,9 +94,21 @@ def login():
 def register():
     if request.method == 'POST':
         username = request.form['username']
-        password = request.form['password']
+        EnteredPassword = request.form['password']
         #new_user = Users(username=user_email,)
-        flash(f'Registration successful for {username}', 'success')
+        userObj = Users(
+            user_email=username,
+            password=EnteredPassword,
+            fname="dne",
+            lname="dne",
+            isadmin=False,
+            cash=0
+        )
+        db.session.add(userObj)
+        db.session.commit()
+        print("created user")
+
+        flash('Registration successful for {username}', 'success')
         return redirect(url_for('home'))
     return render_template('register.html')
 
