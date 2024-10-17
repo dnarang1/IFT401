@@ -205,6 +205,30 @@ def user_settings():
 def admin_page():
     return render_template('admin_page.html')
 
+@app.route('/admin/addstock', methods=['GET', 'POST'])
+def admin_add_stock():
+    if request.method == 'POST':
+        EntstockName = request.form['StockName']
+        EntstockTicker = request.form['StockTicker']
+        EntstockPrice = request.form['StockPrice']
+        EntstockCount = request.form['StockCount']
+        stockObj = Market_Stock(
+            stock_ticker=EntstockTicker,
+            stock_name=EntstockName,
+            stock_quantity=EntstockCount,
+            stock_price=EntstockPrice,
+            market_high=EntstockPrice,
+            market_low=EntstockPrice
+        )
+        print(stockObj)
+        db.session.add(stockObj)
+        db.session.commit()
+        print("created stock")
+
+        flash('Stock {EntstockName} created', 'success')
+        return redirect(url_for('admin_page'))
+    return render_template('admin_add_stock.html')
+
 if __name__ == '__main__':
     app.run(debug=True)
 

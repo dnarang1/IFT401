@@ -1,0 +1,21 @@
+form{% extends 'base.html' %}
+
+{% block title %}Admin Add Stock Page{% endblock %}
+
+{% block content %}
+
+<form method="POST" action="{{ url_for('admin_add_stock') }}">
+    <input type="StockName" class="form-control" id="StockName" name="StockName" 
+    placeholder="Enter the name of the stock" required>
+    <input type="StockTicker" class="form-control" id="StockTicker" name="StockTicker" 
+    placeholder="Enter the ticker of the stock" required>
+    <input type="StockPrice" class="form-control" id="StockPrice" name="StockPrice" 
+    placeholder="Enter the Initial Price of the stock" required>
+    <input type="StockCount" class="form-control" id="StockCount" name="StockCount" 
+    placeholder="Enter the count of the stock" required>
+    <div class="d-flex justify-content-center">
+        <button type="submit" class="btn btn-primary mt-3">Sign In</button>
+    </div>
+</form>
+
+{% endblock %}
