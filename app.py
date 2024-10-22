@@ -131,17 +131,19 @@ def dashboard_view():
 
     ##stock market info call
     AllMarketStocks = db.session.query(Market_Stock)
-    print(AllMarketStocks)
+    #print(AllMarketStocks)
 
     #get user stock info
     userStocks = db.session.query(User_Stock).filter(User_Stock.user_email == username).all()
     listOfUserStock = []
+    stockData = []
     for item in userStocks:
-        print(item.stock_ticker)
-        print(item.user_quantity)
+        #print(item.stock_ticker)
+        #print(item.user_quantity)
         listOfUserStock.append(item.stock_ticker)
-    print(listOfUserStock)
-    stockData = [10]
+        stockData.append(item.user_quantity)
+    #print(listOfUserStock)
+    #stockData = [10] #used for testing
 
     return render_template('dashboard.html', username=username, cash=cash,allstocks=AllMarketStocks,ownedStocklables=listOfUserStock,data=stockData)
 
