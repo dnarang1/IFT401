@@ -122,10 +122,33 @@ def contact():
 
 @app.route('/dashboard')
 def dashboard_view():
-    username = "Test User"
+    ## get user info
+    username = "greg@greg.greg"
+    user = db.session.query(Users).filter(Users.user_email == username).first()
     #sql call for cash value
-    cash = 1000  # Placeholder for current cash
-    return render_template('dashboard.html', username=username, cash=cash)
+    print(user.cash)
+    cash = user.cash
+
+    ##stock market info call
+    AllMarketStocks = db.session.query(Market_Stock)
+    print(AllMarketStocks)
+
+    #get user stock info
+    userStocks = db.session.query(User_Stock).filter(User_Stock.user_email == username).all()
+    listOfUserStock = []
+    for item in userStocks:
+        print(item.stock_ticker)
+        print(item.user_quantity)
+        listOfUserStock.append(item.stock_ticker)
+    print(listOfUserStock)
+    stockData = [10]
+
+    return render_template('dashboard.html', username=username, cash=cash,allstocks=AllMarketStocks,ownedStocklables=listOfUserStock,data=stockData)
+
+@app.route('/testforloops')
+def testforloops():
+    AllMarketStocks = db.session.query(Market_Stock)
+    return render_template('testforloop.html',items=AllMarketStocks)
 
 @app.route('/buy_stocks')
 def buy_stocks():
@@ -208,25 +231,24 @@ def admin_page():
 @app.route('/admin/addstock', methods=['GET', 'POST'])
 def admin_add_stock():
     if request.method == 'POST':
-        EntstockName = request.form['StockName']
-        EntstockTicker = request.form['StockTicker']
-        EntstockPrice = request.form['StockPrice']
-        EntstockCount = request.form['StockCount']
+        stockName = request.form['stockName']
+        stockTicker = request.form['stockTicker']
+        stockPrice = request.form['stockPrice']
+        stockCount = request.form['stockCount']
         stockObj = Market_Stock(
-            stock_ticker=EntstockTicker,
-            stock_name=EntstockName,
-            stock_quantity=EntstockCount,
-            stock_price=EntstockPrice,
-            market_high=EntstockPrice,
-            market_low=EntstockPrice
+            user_email=username,
+            password=EnteredPassword,
+            fname="dne",
+            lname="dne",
+            isadmin=False,
+            cash=0
         )
-        print(stockObj)
-        db.session.add(stockObj)
+        db.session.add(userObj)
         db.session.commit()
-        print("created stock")
+        print("created user")
 
-        flash('Stock {EntstockName} created', 'success')
-        return redirect(url_for('admin_page'))
+        flash('Registration successful for {username}', 'success')
+        return redirect(url_for('home'))
     return render_template('admin_add_stock.html')
 
 if __name__ == '__main__':

@@ -45,6 +45,7 @@
                     <img src="https://via.placeholder.com/100" alt="Profile Icon" class="img-fluid rounded-circle mb-3">
                     <h4>{{ username }}</h4> <!-- Display username dynamically -->
                     <p>Current Cash: ${{ cash }}</p> <!-- Display current cash -->
+                    
 
                     <!-- User Settings button -->
                     <a class="btn btn-outline-primary w-100 mt-3" href="{{ url_for('user_settings') }}">
@@ -120,34 +121,17 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- Example stock data -->
+                                {% for stock in allstocks %}
                                     <tr>
-                                        <td>APPL</td>
-                                        <td>$150.00</td>
-                                        <td>1,000</td>
-                                        <td>$150,000</td>
-                                        <td>$148.00</td>
-                                        <td>$152.00</td>
-                                        <td>$147.00</td>
+                                        <td>{{stock.stock_ticker}}</td>
+                                        <td>{{stock.stock_price}}</td>
+                                        <td>{{stock.stock_quantity}}</td>
+                                        <td>{{stock.stock_price}}</td>
+                                        <td>{{stock.stock_price}}</td>
+                                        <td>{{stock.stock_high}}</td>
+                                        <td>{{stock.stock_low}}</td>
                                     </tr>
-                                    <tr>
-                                        <td>GOOGL</td>
-                                        <td>$2800.00</td>
-                                        <td>500</td>
-                                        <td>$1,400,000</td>
-                                        <td>$2750.00</td>
-                                        <td>$2820.00</td>
-                                        <td>$2740.00</td>
-                                    </tr>
-                                    <tr>
-                                        <td>AMZN</td>
-                                        <td>$3400.00</td>
-                                        <td>300</td>
-                                        <td>$1,020,000</td>
-                                        <td>$3350.00</td>
-                                        <td>$3420.00</td>
-                                        <td>$3300.00</td>
-                                    </tr>
+                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -159,15 +143,17 @@
 </div>
 
 <!-- ChartJS to render the stock breakdown chart -->
+<!--
 <script>
     const ctx = document.getElementById('stocksChart').getContext('2d');
     const stocksChart = new Chart(ctx, {
         type: 'bar', // Bar chart for stock values
         data: {
-            labels: ['Stock A', 'Stock B', 'Stock C','d','e','f','g','h','i','j','k','l','m','m','n','o','p'], // Replace with actual stock names
+            labels: {{ ownedStocklables }}
+            //labels: ['Stock A', 'Stock B', 'Stock C','d','e','f','g','h','i','j','k','l','m','m','n','o','p'], // Replace with actual stock names
             datasets: [{
                 label: 'Stock Values',
-                data: [200, 150, 300,99,120], // Replace with actual values
+                data: [1], // Replace with actual values
                 backgroundColor: [
                     'rgba(1, 255, 132, 0.2)',
                     'rgba(54, 162, 235, 0.2)',
@@ -189,6 +175,29 @@
             }
         }
     });
+</script>
+-->
+<script>
+    const lables = {{ownedStocklables | tojson}};
+    const data = {
+        labels: lables,
+        datasets: [{
+            label: 'Stocks',
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(0, 0, 0)',
+            data: {{ data | tojson}}
+        }]
+    };
+    const config = {
+        type: 'bar',
+        data: data,
+        options: { maintainAspectRatio: true}
+    };
+
+    const myChart = new Chart(
+        document.getElementById('stocksChart'),
+        config
+    );
 </script>
 {% endblock %}
 <!-- End of content block -->

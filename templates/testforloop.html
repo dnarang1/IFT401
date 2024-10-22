@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}loop examples{% endblock %}
+
+{% block content %}
+
+<p>loops example</p>
+<ul>
+    {% for item in items %}
+        <li>{{ item.stock_name }} {{ item.stock_ticker}}</li>
+    {% endfor %}
+</ul>
+{% endblock %}
