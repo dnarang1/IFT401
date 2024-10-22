@@ -147,11 +147,6 @@ def dashboard_view():
 
     return render_template('dashboard.html', username=username, cash=cash,allstocks=AllMarketStocks,ownedStocklables=listOfUserStock,data=stockData)
 
-@app.route('/testforloops')
-def testforloops():
-    AllMarketStocks = db.session.query(Market_Stock)
-    return render_template('testforloop.html',items=AllMarketStocks)
-
 @app.route('/buy_stocks')
 def buy_stocks():
     return "Buy Stocks page (To be implemented)"
