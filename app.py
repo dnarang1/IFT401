@@ -126,7 +126,7 @@ def dashboard_view():
     username = "greg@greg.greg"
     user = db.session.query(Users).filter(Users.user_email == username).first()
     #sql call for cash value
-    print(user.cash)
+    #print(user.cash)
     cash = user.cash
 
     ##stock market info call
