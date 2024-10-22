@@ -3,27 +3,37 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, FloatField, IntegerField, SubmitField
 from wtforms.validators import DataRequired
-from datetime import datetime  # Import datetime
+from datetime import datetime
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import sys
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
-from flask_sqlalchemy import SQLAlchemy
+# Configure the database
 app.config['SQLALCHEMY_DATABASE_URI'] ='mysql+pymysql://root:password@localhost/superstocks'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-#define tables
-class Users(db.Model):
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'  # Redirect to the login page if not logged in
+
+# Define the User model
+class Users(db.Model, UserMixin):
     __tablename__ = 'users'
     user_email = db.Column(db.String(128), primary_key=True)
     fname = db.Column(db.String(128), nullable=False)
     lname = db.Column(db.String(128), nullable=False)
     isadmin = db.Column(db.Boolean)
     cash = db.Column(db.DECIMAL(10,2), nullable=False)
-    password = db.Column(db.String(128), nullable=False)
+    password = db.Column(db.String(512), nullable=False)
 
+    def get_id(self):
+        return self.user_email
+# Define other models
 class User_Stock(db.Model):
     __tablename__ = 'user_stock'
     id = db.Column(db.Integer, primary_key=True)
@@ -44,7 +54,7 @@ class Market_Stock(db.Model):
     __tablename__ = 'market_stock'
     stock_ticker = db.Column(db.CHAR(5), primary_key=True)
     stock_name = db.Column(db.String(128), nullable=False)
-    stock_quantity= db.Column(db.Integer, nullable=False)
+    stock_quantity = db.Column(db.Integer, nullable=False)
     stock_price = db.Column(db.DECIMAL(10,2), nullable=False)
     market_high = db.Column(db.DECIMAL(10,2), nullable=False)
     market_low = db.Column(db.DECIMAL(10,2), nullable=False)
@@ -56,15 +66,19 @@ class Market(db.Model):
     openHour = db.Column(db.Integer, nullable=False)
     closeHour = db.Column(db.Integer, nullable=False)
 
+# Load user callback
+@login_manager.user_loader
+def load_user(user_email):
+    return Users.query.get(user_email)
 
 @app.route('/createdb')
 def creDB():
     db.create_all()
-    return "Createed product databa"
+    return "Created product database"
 
 @app.route('/')
 def home():
-    current_year = datetime.now().year  # Get the current year
+    current_year = datetime.now().year
     return render_template('home.html', current_year=current_year)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -73,19 +87,15 @@ def login():
         email = request.form['email']
         password = request.form['password']
 
-        #login logic
-        #print(email)
-        #print(password)
-        row = db.session.query(Users).filter(
-            Users.user_email == email,
-            Users.password == password
-        ).first()
-        if row:
-            print("user exists")
+        # Login logic
+        user = Users.query.filter_by(user_email=email).first()
+        if user and check_password_hash(user.password, password):
+            login_user(user)  # Log the user in
+            print('Successful Login')
             flash('Login successful', 'success')
-            return redirect(url_for('dashboard_view', username=email))
+            return redirect(url_for('dashboard_view'))
         else:
-            print("not found")
+            print('Login failed')
             flash('Login failed. Check your email or password.', 'danger')
             return redirect(url_for('login'))
     return render_template('home.html')
@@ -95,21 +105,25 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         EnteredPassword = request.form['password']
-        #new_user = Users(username=user_email,)
+        HashedPassword = generate_password_hash(EnteredPassword)
         userObj = Users(
             user_email=username,
-            password=EnteredPassword,
+            password=HashedPassword,
             fname="dne",
             lname="dne",
             isadmin=False,
             cash=0
         )
-        db.session.add(userObj)
-        db.session.commit()
-        print("created user")
-
-        flash('Registration successful for {username}', 'success')
-        return redirect(url_for('home'))
+        try:
+            db.session.add(userObj)
+            print('User added successfully')
+            db.session.commit()
+            flash(f'Registration successful for {username}', 'success')
+            return redirect(url_for('home'))
+        except Exception as e:
+            db.session.rollback()
+            print(f'Error adding user: {e}')
+            flash('Registration failed. Please try again.', 'danger')
     return render_template('register.html')
 
 @app.route('/about')
@@ -121,31 +135,22 @@ def contact():
     return render_template('contact.html')
 
 @app.route('/dashboard')
+@login_required
 def dashboard_view():
-    ## get user info
-    username = "greg@greg.greg"
+    username = current_user.user_email  # Use the logged-in user's email
     user = db.session.query(Users).filter(Users.user_email == username).first()
-    #sql call for cash value
-    #print(user.cash)
     cash = user.cash
 
-    ##stock market info call
-    AllMarketStocks = db.session.query(Market_Stock)
-    #print(AllMarketStocks)
+    AllMarketStocks = db.session.query(Market_Stock).all()
 
-    #get user stock info
     userStocks = db.session.query(User_Stock).filter(User_Stock.user_email == username).all()
     listOfUserStock = []
     stockData = []
     for item in userStocks:
-        #print(item.stock_ticker)
-        #print(item.user_quantity)
         listOfUserStock.append(item.stock_ticker)
         stockData.append(item.user_quantity)
-    #print(listOfUserStock)
-    #stockData = [10] #used for testing
 
-    return render_template('dashboard.html', username=username, cash=cash,allstocks=AllMarketStocks,ownedStocklables=listOfUserStock,data=stockData)
+    return render_template('dashboard.html', username=username, cash=cash, allstocks=AllMarketStocks, ownedStocklables=listOfUserStock, data=stockData)
 
 @app.route('/buy_stocks')
 def buy_stocks():
@@ -153,8 +158,8 @@ def buy_stocks():
 
 @app.route('/add_cash', methods=['GET', 'POST'])
 def add_cash():
-    username = "Test User"
-    current_cash = 1000.00
+    username = current_user.user_email  # Use the logged-in user's email
+    current_cash = 1000.00  # This should ideally be fetched from the database
     if request.method == 'POST':
         amount = float(request.form['amount'])
         import random
@@ -163,7 +168,7 @@ def add_cash():
         if success_rate:
             new_cash = current_cash + amount
             flash(f'Success! ${amount} has been added to your account. Your new balance is ${new_cash:.2f}.', 'success')
-            return redirect(url_for('dashboard', username=username))
+            return redirect(url_for('dashboard_view'))
         else:
             flash('Error: Failed to add cash. Please try again.', 'danger')
             return redirect(url_for('add_cash'))
@@ -171,7 +176,9 @@ def add_cash():
     return render_template('add_cash.html', username=username, current_cash=current_cash)
 
 @app.route('/logout')
+@login_required
 def logout():
+    logout_user()
     flash('You have been logged out', 'info')
     return redirect(url_for('home'))
 
@@ -194,15 +201,15 @@ def sell_stocks():
             return render_template('sell_stocks.html', error=False)
 
         num_stocks = int(num_stocks)
-        total_stocks = 50
+        total_stocks = 50  # Replace with actual stock quantity logic
 
         if num_stocks > total_stocks:
             flash(f"Not enough stocks available to sell. You have {total_stocks} stocks.", "danger")
             return redirect(url_for('not_enough_stocks'))
         else:
-            sell_value = num_stocks * 500
+            sell_value = num_stocks * 500  # Replace with actual sell value logic
             flash(f'Successfully sold {num_stocks} stocks for ${sell_value}.', 'success')
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('dashboard_view'))
 
     return render_template('sell_stocks.html', error=False)
 
@@ -211,21 +218,24 @@ def not_enough_stocks():
     return render_template('not_enough_stocks.html')
 
 @app.route('/user_settings', methods=['GET', 'POST'])
+@login_required
 def user_settings():
     if request.method == 'POST':
-        # Get new email and password from the form
         new_email = request.form['email']
         new_password = request.form['password']
-        # Add logic to update user's email and password in the database
         flash('User settings updated successfully', 'success')
         return redirect(url_for('dashboard_view'))
     return render_template('user_settings.html')
 
 @app.route('/admin_page')
+@login_required
 def admin_page():
+    if not current_user.isadmin:
+        return "ADMIN ACCESS ONLY", 403
     return render_template('admin_page.html')
 
 @app.route('/admin/addstock', methods=['GET', 'POST'])
+@login_required
 def admin_add_stock():
     if request.method == 'POST':
         stockName = request.form['stockName']
@@ -233,21 +243,18 @@ def admin_add_stock():
         stockPrice = request.form['stockPrice']
         stockCount = request.form['stockCount']
         stockObj = Market_Stock(
-            user_email=username,
-            password=EnteredPassword,
-            fname="dne",
-            lname="dne",
-            isadmin=False,
-            cash=0
+            stock_ticker=stockTicker,
+            stock_name=stockName,
+            stock_price=stockPrice,
+            stock_quantity=stockCount,
+            market_high=stockPrice,
+            market_low=stockPrice,
         )
-        db.session.add(userObj)
+        db.session.add(stockObj)
         db.session.commit()
-        print("created user")
-
-        flash('Registration successful for {username}', 'success')
-        return redirect(url_for('home'))
+        flash('Stock added successfully!', 'success')
+        return redirect(url_for('admin_page'))
     return render_template('admin_add_stock.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
-
