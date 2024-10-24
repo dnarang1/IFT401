@@ -186,8 +186,12 @@ def forgot_password():
 @app.route('/sell_stocks', methods=['GET', 'POST'])
 def sell_stocks():
     if request.method == 'POST':
+
         stock = request.form.get('stock')
         num_stocks = request.form.get('num_stocks')
+        
+        #get stock owned by user matching sell order
+        ownedstock = db.session.query(User_Stock).filter(User_Stock.stock_ticker == stock)
 
         if not num_stocks or not num_stocks.isdigit():
             flash("Please enter a valid number of stocks.", "danger")
@@ -202,9 +206,19 @@ def sell_stocks():
         else:
             sell_value = num_stocks * 500
             flash(f'Successfully sold {num_stocks} stocks for ${sell_value}.', 'success')
-            return redirect(url_for('dashboard'))
-
-    return render_template('sell_stocks.html', error=False)
+            return redirect(url_for('dashboard_view'))
+    else:
+        enteredStock = request.args.get('stockToAction', None)
+        print(enteredStock)
+        userStockObj = db.session.query(User_Stock).filter(User_Stock.stock_ticker == enteredStock).first()
+        stockObj = db.session.query(Market_Stock).filter(Market_Stock.stock_ticker == enteredStock).first()
+        print(stockObj.stock_price)
+        count = userStockObj.user_quantity
+        print(count)
+        value = stockObj.stock_price * count
+        print(value)
+            
+        return render_template('sell_stocks.html', error=False, stockToAction=enteredStock,ownedCount=count,summedValue = value)
 
 @app.route('/not_enough_stocks')
 def not_enough_stocks():
