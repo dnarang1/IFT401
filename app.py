@@ -16,7 +16,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] ='mysql+pymysql://root:password@localhost/
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Initialize Flask-Login
+# Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'  # Redirect to the login page if not logged in
@@ -40,7 +40,7 @@ class User_Stock(db.Model):
     user_email = db.Column(db.String(128), db.ForeignKey('users.user_email'))
     stock_ticker = db.Column(db.CHAR(5), db.ForeignKey('market_stock.stock_ticker'))
     user_quantity = db.Column(db.Integer, nullable=False)
-
+# Define user transactions
 class User_Transactions(db.Model):
     __tablename__ = 'user_transactions'
     transaction_number = db.Column(db.Integer, primary_key=True)
@@ -49,7 +49,7 @@ class User_Transactions(db.Model):
     price_at_purchase = db.Column(db.DECIMAL(10,2), nullable=False)
     purchase_quantity = db.Column(db.Integer, nullable=False)
     user_email = db.Column(db.String(128), db.ForeignKey('users.user_email'))
-
+# Define market stock
 class Market_Stock(db.Model):
     __tablename__ = 'market_stock'
     stock_ticker = db.Column(db.CHAR(5), primary_key=True)
@@ -58,7 +58,7 @@ class Market_Stock(db.Model):
     stock_price = db.Column(db.DECIMAL(10,2), nullable=False)
     market_high = db.Column(db.DECIMAL(10,2), nullable=False)
     market_low = db.Column(db.DECIMAL(10,2), nullable=False)
-
+# Define market
 class Market(db.Model):
     __tablename__ = 'market'
     DOY = db.Column(db.Integer, primary_key=True)
@@ -71,11 +71,12 @@ class Market(db.Model):
 def load_user(user_email):
     return Users.query.get(user_email)
 
+# Database init
 @app.route('/createdb')
 def creDB():
     db.create_all()
     return "Created product database"
-
+# Homepage
 @app.route('/')
 def home():
     current_year = datetime.now().year
@@ -83,11 +84,12 @@ def home():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # Grab email and password from webpage
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
 
-        # Login logic
+        # Login logic. Finds user then checks password against hashed password in the database
         user = Users.query.filter_by(user_email=email).first()
         if user and check_password_hash(user.password, password):
             login_user(user)  # Log the user in
@@ -114,15 +116,16 @@ def register():
             isadmin=False,
             cash=0
         )
+        # attempt to add to database
         try:
             db.session.add(userObj)
-            print('User added successfully')
+            print('User added successfully') # Debug message
             db.session.commit()
             flash(f'Registration successful for {username}', 'success')
             return redirect(url_for('home'))
         except Exception as e:
             db.session.rollback()
-            print(f'Error adding user: {e}')
+            print(f'Error adding user: {e}') # Debug message
             flash('Registration failed. Please try again.', 'danger')
     return render_template('register.html')
 
@@ -212,11 +215,14 @@ def sell_stocks():
             return redirect(url_for('dashboard_view'))
 
     return render_template('sell_stocks.html', error=False)
-
+# Error page
 @app.route('/not_enough_stocks')
 def not_enough_stocks():
     return render_template('not_enough_stocks.html')
 
+
+
+# User settings
 @app.route('/user_settings', methods=['GET', 'POST'])
 @login_required
 def user_settings():
@@ -226,17 +232,18 @@ def user_settings():
         flash('User settings updated successfully', 'success')
         return redirect(url_for('dashboard_view'))
     return render_template('user_settings.html')
-
+# Admin page
 @app.route('/admin_page')
 @login_required
 def admin_page():
     if not current_user.isadmin:
         return "ADMIN ACCESS ONLY", 403
     return render_template('admin_page.html')
-
+# Add stock
 @app.route('/admin/addstock', methods=['GET', 'POST'])
 @login_required
 def admin_add_stock():
+    # Grab info from webpage
     if request.method == 'POST':
         stockName = request.form['stockName']
         stockTicker = request.form['stockTicker']
@@ -250,11 +257,22 @@ def admin_add_stock():
             market_high=stockPrice,
             market_low=stockPrice,
         )
+        # Add info to database
         db.session.add(stockObj)
         db.session.commit()
         flash('Stock added successfully!', 'success')
         return redirect(url_for('admin_page'))
     return render_template('admin_add_stock.html')
+
+@app.route('/admin/view_users', methods=['GET','POST'])
+@login_required
+def view_users():
+    if not current_user.isadmin:
+        return "ADMIN ACESS ONLY", 403
+
+    all_users = Users.query.all()
+    return render_template('view_users.html', users=all_users)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
