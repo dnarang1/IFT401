@@ -33,7 +33,7 @@ class User_Stock(db.Model):
 
 class User_Transactions(db.Model):
     __tablename__ = 'user_transactions'
-    transaction_number = db.Column(db.Integer, primary_key=True)
+    transaction_number = db.Column(db.Integer, primary_key=True, AUTO_INCREMENT=True) 
     stock_ticker = db.Column(db.CHAR(5), db.ForeignKey('market_stock.stock_ticker'))
     sell_buy = db.Column(db.Boolean)
     price_at_purchase = db.Column(db.DECIMAL(10,2), nullable=False)
@@ -186,12 +186,42 @@ def forgot_password():
 @app.route('/sell_stocks', methods=['GET', 'POST'])
 def sell_stocks():
     if request.method == 'POST':
-
-        stock = request.form.get('stock')
+        #get info from user
+        stock = request.form.get('stock_ticker')
+        print("selected stock: ",stock)
         num_stocks = request.form.get('num_stocks')
-        
-        #get stock owned by user matching sell order
-        ownedstock = db.session.query(User_Stock).filter(User_Stock.stock_ticker == stock)
+        print(num_stocks)
+        userEmail = "greg@greg.greg"
+
+        #get row from db
+        user_inventoryObj = db.session.query(User_Stock).filter(User_Stock.stock_ticker == stock).first()
+        print(user_inventoryObj)
+        oldStockCount = user_inventoryObj.user_quantity
+        newStockCount = oldStockCount - int(num_stocks)
+        print("new stock count:", newStockCount)
+        setattr(user_inventoryObj, 'user_quantity', newStockCount)
+        db.session.commit()
+        print("sold stock from user")
+
+        #add cash to user
+        user_obj = db.session.query(Users).filter(Users.user_email == userEmail).first()
+        market_stockObj = db.session.query(Market_Stock).filter(Market_Stock.stock_ticker == stock).first()
+        cashValue = market_stockObj.stock_price * int(num_stocks)
+        setattr(user_obj, 'cash', user_obj.cash + cashValue)
+        db.session.commit()
+        print("added cash to user profile")
+
+        #add new transaction log
+        newTransaction = User_Transactions(
+            stock_ticker = stock,
+            sell_buy = False,
+            price_at_purchase = market_stockObj.stock_price,
+            purchase_quantity = num_stocks,
+            user_email = userEmail
+        )
+        db.session.add(newTransaction)
+        db.session.commit()
+        print("added transaction log")
 
         if not num_stocks or not num_stocks.isdigit():
             flash("Please enter a valid number of stocks.", "danger")
@@ -207,7 +237,7 @@ def sell_stocks():
             sell_value = num_stocks * 500
             flash(f'Successfully sold {num_stocks} stocks for ${sell_value}.', 'success')
             return redirect(url_for('dashboard_view'))
-    else:
+    if request.method == 'GET':
         enteredStock = request.args.get('stockToAction', None)
         print(enteredStock)
         userStockObj = db.session.query(User_Stock).filter(User_Stock.stock_ticker == enteredStock).first()
@@ -217,7 +247,6 @@ def sell_stocks():
         print(count)
         value = stockObj.stock_price * count
         print(value)
-            
         return render_template('sell_stocks.html', error=False, stockToAction=enteredStock,ownedCount=count,summedValue = value)
 
 @app.route('/not_enough_stocks')

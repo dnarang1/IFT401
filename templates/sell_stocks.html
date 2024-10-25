@@ -38,23 +38,22 @@
                 <h2 class="text-center">Sell Stocks</h2>
 
                 <!-- Form to submit stock sale -->
-                <form method="GET" action="{{ url_for('sell_stocks') }}">
+                <form method="POST" action="{{ url_for('sell_stocks') }}">
                     <!-- Dropdown for selecting the stock to sell -->
                     <div class="mb-3">
                         <label for="stock" class="form-label">Current Selected Stock</label>
-                            <p>{{ stockToAction }}</p>
-                        </select>
+                        <input type="text" class="form-control" value={{ stockToAction }} readonly id="stock_ticker" name="stock_ticker">
                     </div>
 
                     <!-- Display current stock details (read-only) -->
                     <div class="row">
                         <div class="col">
                             <label>Total Current Stocks</label>
-                            <input type="text" class="form-control" value={{ ownedCount }} readonly> <!-- Simulated data -->
+                            <input type="text" class="form-control" value={{ ownedCount }} readonly>
                         </div>
                         <div class="col">
                             <label>Current Stock Market Value</label>
-                            <input type="text" class="form-control" value={{summedValue}} readonly> <!-- Simulated data -->
+                            <input type="text" class="form-control" value={{ summedValue }} readonly>
                         </div>
                     </div>
 
