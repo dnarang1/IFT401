@@ -223,20 +223,23 @@ def sell_stocks():
         db.session.commit()
         print("added transaction log")
 
-        if not num_stocks or not num_stocks.isdigit():
-            flash("Please enter a valid number of stocks.", "danger")
-            return render_template('sell_stocks.html', error=False)
+        return redirect(url_for('dashboard_view'))
 
-        num_stocks = int(num_stocks)
-        total_stocks = 50
+        #if not num_stocks or not num_stocks.isdigit():
+        #    flash("Please enter a valid number of stocks.", "danger")
+        #    return render_template('sell_stocks.html', error=False)
 
-        if num_stocks > total_stocks:
-            flash(f"Not enough stocks available to sell. You have {total_stocks} stocks.", "danger")
-            return redirect(url_for('not_enough_stocks'))
-        else:
-            sell_value = num_stocks * 500
-            flash(f'Successfully sold {num_stocks} stocks for ${sell_value}.', 'success')
-            return redirect(url_for('dashboard_view'))
+        #num_stocks = int(num_stocks)
+        #total_stocks = 50
+
+        #if num_stocks > total_stocks:
+        #    flash(f"Not enough stocks available to sell. You have {total_stocks} stocks.", "danger")
+        #    return redirect(url_for('not_enough_stocks'))
+        #else:
+        #    sell_value = num_stocks * 500
+        #    flash(f'Successfully sold {num_stocks} stocks for ${sell_value}.', 'success')
+        #    return redirect(url_for('dashboard_view'))
+
     if request.method == 'GET':
         enteredStock = request.args.get('stockToAction', None)
         print(enteredStock)
