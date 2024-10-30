@@ -6,12 +6,15 @@
 
 {% block content %}
 <!-- Main container for the Admin Control Panel -->
+
+<!-- -->
 <div class="container mt-4 text-center">  <!-- Aligns text in the center -->
     <h1>Admin Control Panel</h1>
     <p>Welcome, admin! Manage the platform using the controls below.</p>
 </div>
 
 <!-- Main admin functionality sections -->
+ <!-- Thinking we could load content on the page directly in the future rather than load content through hyperlinks. Just a possibility, it's seems easier [and cleaner?] with links (FX)-->
 <div class="container mt-4">
     <div class="row">
         <!-- Manage Users Section -->
@@ -21,11 +24,15 @@
                     <h4>Manage Users</h4>
                     <ul>
                         <li><a href="{{ url_for('view_users') }}">View all users</a></li>
+<<<<<<< Updated upstream
                         <li><a href="#">Edit user details</a></li>
                         <li><a href="#">Reset user passwords</a></li>
                         <li><a href="#">Lock/Unlock user accounts</a></li>
                         <li><a href="#">Set buy/sell limits</a></li>
 
+=======
+                        <li><a href="#">Edit user details</a></li> <!-- Lock users (approve/disable users accounts) feature to be included in this. Perhaps we could condense to a single section or laod the content directly on the admin page (FX)-->
+>>>>>>> Stashed changes
                     </ul>
                 </div>
             </div>
@@ -94,7 +101,12 @@
                 <div class="card-body">
                     <h4>Site Settings</h4>
                     <ul>
+<<<<<<< Updated upstream
                         <li><a href="#">Adjust platform settings</a></li>
+=======
+                        <li><a href="#">Adjust platform settings</a></li> <!-- Maybe, adjust global theme of the site? This could be done just by changing the template different html files inherit (FX)-->
+                        <li><a href="#">Set buy/sell limits</a></li> <!-- Could be placed under manage users? (FX)-->
+>>>>>>> Stashed changes
                     </ul>
                 </div>
             </div>
