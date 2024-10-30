@@ -43,7 +43,7 @@ class User_Stock(db.Model):
 # Define user transactions
 class User_Transactions(db.Model):
     __tablename__ = 'user_transactions'
-    transaction_number = db.Column(db.Integer, primary_key=True)
+    transaction_number = db.Column(db.Integer, primary_key=True, AUTO_INCREMENT=True) 
     stock_ticker = db.Column(db.CHAR(5), db.ForeignKey('market_stock.stock_ticker'))
     sell_buy = db.Column(db.Boolean)
     price_at_purchase = db.Column(db.DECIMAL(10,2), nullable=False)
@@ -196,26 +196,72 @@ def forgot_password():
 @app.route('/sell_stocks', methods=['GET', 'POST'])
 def sell_stocks():
     if request.method == 'POST':
-        stock = request.form.get('stock')
+        #get info from user
+        stock = request.form.get('stock_ticker')
+        print("selected stock: ",stock)
         num_stocks = request.form.get('num_stocks')
+        print(num_stocks)
+        userEmail = "greg@greg.greg"
 
-        if not num_stocks or not num_stocks.isdigit():
-            flash("Please enter a valid number of stocks.", "danger")
-            return render_template('sell_stocks.html', error=False)
+        #get row from db
+        user_inventoryObj = db.session.query(User_Stock).filter(User_Stock.stock_ticker == stock).first()
+        print(user_inventoryObj)
+        oldStockCount = user_inventoryObj.user_quantity
+        newStockCount = oldStockCount - int(num_stocks)
+        print("new stock count:", newStockCount)
+        setattr(user_inventoryObj, 'user_quantity', newStockCount)
+        db.session.commit()
+        print("sold stock from user")
 
-        num_stocks = int(num_stocks)
-        total_stocks = 50  # Replace with actual stock quantity logic
+        #add cash to user
+        user_obj = db.session.query(Users).filter(Users.user_email == userEmail).first()
+        market_stockObj = db.session.query(Market_Stock).filter(Market_Stock.stock_ticker == stock).first()
+        cashValue = market_stockObj.stock_price * int(num_stocks)
+        setattr(user_obj, 'cash', user_obj.cash + cashValue)
+        db.session.commit()
+        print("added cash to user profile")
 
-        if num_stocks > total_stocks:
-            flash(f"Not enough stocks available to sell. You have {total_stocks} stocks.", "danger")
-            return redirect(url_for('not_enough_stocks'))
-        else:
-            sell_value = num_stocks * 500  # Replace with actual sell value logic
-            flash(f'Successfully sold {num_stocks} stocks for ${sell_value}.', 'success')
-            return redirect(url_for('dashboard_view'))
+        #add new transaction log
+        newTransaction = User_Transactions(
+            stock_ticker = stock,
+            sell_buy = False,
+            price_at_purchase = market_stockObj.stock_price,
+            purchase_quantity = num_stocks,
+            user_email = userEmail
+        )
+        db.session.add(newTransaction)
+        db.session.commit()
+        print("added transaction log")
 
-    return render_template('sell_stocks.html', error=False)
-# Error page
+        return redirect(url_for('dashboard_view'))
+
+        #if not num_stocks or not num_stocks.isdigit():
+        #    flash("Please enter a valid number of stocks.", "danger")
+        #    return render_template('sell_stocks.html', error=False)
+
+        #num_stocks = int(num_stocks)
+        #total_stocks = 50
+
+        #if num_stocks > total_stocks:
+        #    flash(f"Not enough stocks available to sell. You have {total_stocks} stocks.", "danger")
+        #    return redirect(url_for('not_enough_stocks'))
+        #else:
+        #    sell_value = num_stocks * 500
+        #    flash(f'Successfully sold {num_stocks} stocks for ${sell_value}.', 'success')
+        #    return redirect(url_for('dashboard_view'))
+
+    if request.method == 'GET':
+        enteredStock = request.args.get('stockToAction', None)
+        print(enteredStock)
+        userStockObj = db.session.query(User_Stock).filter(User_Stock.stock_ticker == enteredStock).first()
+        stockObj = db.session.query(Market_Stock).filter(Market_Stock.stock_ticker == enteredStock).first()
+        print(stockObj.stock_price)
+        count = userStockObj.user_quantity
+        print(count)
+        value = stockObj.stock_price * count
+        print(value)
+        return render_template('sell_stocks.html', error=False, stockToAction=enteredStock,ownedCount=count,summedValue = value)
+
 @app.route('/not_enough_stocks')
 def not_enough_stocks():
     return render_template('not_enough_stocks.html')

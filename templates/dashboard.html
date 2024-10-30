@@ -56,22 +56,21 @@
         </div>
 
         <!-- Main Dashboard (Center Section) -->
+         
         <div class="col-md-6">
-            <!-- Stock selection and sell button -->
-            <div class="card">
-                <div class="card-body text-center">
-                    <h5>Current Stocks</h5>
-                    <select class="form-select mb-3">
-                        <option selected>Select a stock</option>
-                        <option value="1">Stock A</option>
-                        <option value="2">Stock B</option>
-                        <option value="3">Stock C</option>
-                    </select>
-                    
-                    <button class="btn btn-danger mb-3">Sell</button> <!-- Sell button -->
+            <form method="GET" action="{{ url_for('sell_stocks') }}">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <label for="stockToAction" class="form-label">Stock Ticker</label>
+                            <!-- Input field for the user's email -->
+                            <input type="stockToAction" class="form-control" id="stockToAction" name="stockToAction" 
+                                   placeholder="Please enter the stock ticker" required>
+                        </div>
+                        <button type="submit" class="btn btn-danger mb-3">Sell</button> <!-- Sell button -->
+                    </div>
                 </div>
-            </div>
-
+            </form>
             <!-- Stock overview chart section -->
             <div class="card mt-4">
                 <div class="card-body">
@@ -94,10 +93,7 @@
                         <i class="fas fa-dollar-sign"></i> Add Cash
                     </a>
                 </div>
-            </div>
-
-            
-            
+            </div> 
         </div>
 
         <!-- Stocks Overview Section (Right Sidebar) -->
@@ -141,42 +137,6 @@
         </div>
     </div>
 </div>
-
-<!-- ChartJS to render the stock breakdown chart -->
-<!--
-<script>
-    const ctx = document.getElementById('stocksChart').getContext('2d');
-    const stocksChart = new Chart(ctx, {
-        type: 'bar', // Bar chart for stock values
-        data: {
-            labels: {{ ownedStocklables }}
-            //labels: ['Stock A', 'Stock B', 'Stock C','d','e','f','g','h','i','j','k','l','m','m','n','o','p'], // Replace with actual stock names
-            datasets: [{
-                label: 'Stock Values',
-                data: [1], // Replace with actual values
-                backgroundColor: [
-                    'rgba(1, 255, 132, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(255, 206, 86, 0.2)'
-                ],
-                borderColor: [
-                    'rgba(1, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true // Ensure y-axis starts from zero
-                }
-            }
-        }
-    });
-</script>
--->
 <script>
     const lables = {{ownedStocklables | tojson}};
     const data = {
