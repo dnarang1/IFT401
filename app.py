@@ -269,11 +269,10 @@ def sell_stocks():
         print(value)
         return render_template('sell_stocks.html', error=False, stockToAction=enteredStock,ownedCount=count,summedValue = value)
 
-<<<<<<< Updated upstream
-=======
+
     return render_template('sell_stocks.html', error=False)
 # Error page
-=======
+
         #add cash to user
         user_obj = db.session.query(Users).filter(Users.user_email == userEmail).first()
         market_stockObj = db.session.query(Market_Stock).filter(Market_Stock.stock_ticker == stock).first()
@@ -323,8 +322,7 @@ def sell_stocks():
         print(value)
         return render_template('sell_stocks.html', error=False, stockToAction=enteredStock,ownedCount=count,summedValue = value)
 
->>>>>>> 177536f5bc762fcce95450371bd8d21f22e289c7
->>>>>>> Stashed changes
+
 @app.route('/not_enough_stocks')
 def not_enough_stocks():
     return render_template('not_enough_stocks.html')
