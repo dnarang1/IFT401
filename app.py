@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 from flask_wtf import FlaskForm
 from wtforms import StringField, FloatField, IntegerField, SubmitField
 from wtforms.validators import DataRequired
@@ -7,6 +8,9 @@ from datetime import datetime
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import sys
 from werkzeug.security import generate_password_hash, check_password_hash
+import matplotlib.pyplot as plt
+import io
+import base64
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
@@ -323,15 +327,76 @@ def admin_add_stock():
         return redirect(url_for('admin_page'))
     return render_template('admin_add_stock.html')
 
-@app.route('/admin/view_users', methods=['GET','POST'])
+
+
+@app.route('/admin/manage_users', methods=['GET', 'POST'])
 @login_required
-def view_users():
+def manage_users():
+    if request.method == 'POST':
+        # Handle form submission for updating user details
+        user_email = request.form['user_email']
+        new_email = request.form['new_email']
+        is_admin = 'isadmin' in request.form
+        is_locked = 'islocked' in request.form
+
+        # Update the user details
+        update_user_email(user_email, new_email)  
+        update_user_status(user_email, is_admin, is_locked)  
+
+        flash('User details updated successfully!', 'success')
+        return redirect(url_for('manage_users'))  # Redirect to avoid re-posting on refresh
+
+    users = get_all_users()  # Fetch all users from the database
+    return render_template('manage_users.html', users=users)
+
+def update_user_email(old_email, new_email):
+    user = Users.query.filter_by(user_email=old_email).first()
+    if user:
+        user.user_email = new_email
+        db.session.commit()  # Commit the change to the database
+    else:
+        print(f"User with email {old_email} not found.")
+
+def update_user_status(email, is_admin, is_locked):
+    user = Users.query.filter_by(user_email=email).first()
+    if user:
+        user.isadmin = is_admin
+        user.islocked = is_locked
+        db.session.commit()  # Commit the change to the database
+    else:
+        print(f"User with email {email} not found.")
+
+def get_all_users():
+    return Users.query.all()  # Fetch all users from the Users table
+
+
+@app.route('/admin/manage_stocks', methods=['GET', 'POST'])
+@login_required
+def manage_stocks():
     if not current_user.isadmin:
-        return "ADMIN ACESS ONLY", 403
+        return "ADMIN ACCESS ONLY", 403
 
-    all_users = Users.query.all()
-    return render_template('view_users.html', users=all_users)
+    # Add logic to handle stock management
+    return render_template('manage_stocks.html')
 
+@app.route('/admin/manage_users/review_transactions')
+def review_transactions():
+    if not current_user.isadmin:
+       return "ADMIN ACCESS ONLY", 403
+    
+    return render_template('review_transactions.html')
+@app.route('/admin/manage_users/generate_reports')
+def generate_reports():
+    if not current_user.isadmin:
+        return "ADMIN ACCESS ONLY", 403
+    
+    return render_template('generate_reports.html')
+@app.route('/admin/site_settings')
+def site_settings():
+    if not current_user.isadmin:
+        return "ADMIN ACCESS ONLY", 403
+    
+    return render_template('generate_reports.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
