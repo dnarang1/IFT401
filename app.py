@@ -11,6 +11,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import matplotlib.pyplot as plt
 import io
 import base64
+import random
+from random import uniform
+from decimal import Decimal
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
@@ -152,6 +155,16 @@ def dashboard_view():
 
     AllMarketStocks = db.session.query(Market_Stock).all()
 
+    #randomize stock prices
+    for item in AllMarketStocks:
+        rando = Decimal(uniform(0.75,1.25))
+        oldPrice = item.stock_price
+        newPrice = rando * oldPrice
+        setattr(item, 'stock_price', item.stock_price * rando)
+    db.session.commit()
+
+    AllMarketStocks = db.session.query(Market_Stock).all()
+
     userStocks = db.session.query(User_Stock).filter(User_Stock.user_email == username).all()
     listOfUserStock = []
     stockData = []
@@ -259,7 +272,7 @@ def add_cash():
     current_cash = 1000.00  # This should ideally be fetched from the database
     if request.method == 'POST':
         amount = float(request.form['amount'])
-        import random
+        
         success_rate = random.choice([True, False])
 
         if success_rate:
