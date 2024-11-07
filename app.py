@@ -103,7 +103,10 @@ def login():
             login_user(user)  # Log the user in
             print('Successful Login')
             flash('Login successful', 'success')
-            return redirect(url_for('dashboard_view'))
+            if not user.isadmin:
+                return redirect(url_for('dashboard_view'))
+            else:
+                return redirect(url_for('admin_page'))
         else:
             print('Login failed')
             flash('Login failed. Check your email or password.', 'danger')
@@ -483,7 +486,7 @@ def site_settings():
     if not current_user.isadmin:
         return "ADMIN ACCESS ONLY", 403
     
-    return render_template('generate_reports.html')
+    return render_template('site_settings.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
