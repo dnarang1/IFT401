@@ -161,8 +161,95 @@ def dashboard_view():
 
     return render_template('dashboard.html', username=username, cash=cash, allstocks=AllMarketStocks, ownedStocklables=listOfUserStock, data=stockData)
 
-@app.route('/buy_stocks')
+@app.route('/buy_stocks', methods=['GET', 'POST'])
+@login_required
 def buy_stocks():
+    if request.method == 'GET':
+        #print(request.args.get('stock'))
+        enteredStock = request.args.get('stock')
+        #print("selected Stock: ",enteredStock)
+        availableMarket = db.session.query(Market_Stock).filter(Market_Stock.stock_ticker == enteredStock).first()
+        count = availableMarket.stock_quantity
+        value = availableMarket.stock_price * count
+        #get user obj to show max number of stocks that could be bought
+        userObj = db.session.query(Users).filter(Users.user_email==current_user.user_email).first()
+        cash = userObj.cash
+        TotalUserCanBuy = cash // availableMarket.stock_price
+        print("user has: ",cash, "cash. Total Stock Value: ",value)
+        if(TotalUserCanBuy > count):
+            buyableCount = count
+            
+        else:
+            buyableCount = TotalUserCanBuy
+        value = buyableCount * availableMarket.stock_price
+
+        #return "list available stocks"
+        return render_template('buy_stocks.html', stockToAction=enteredStock,ownedCount=buyableCount,summedValue=value)
+
+    #if post
+    if request.method == 'POST':
+        #return "to be implemented"
+        stock = request.form.get('stock_ticker')
+        num_stocks = request.form.get('num_stocks')
+        userEmail = current_user.user_email
+        user_inventoryObj = db.session.query(User_Stock).filter(User_Stock.user_email == userEmail, User_Stock.stock_ticker == stock).first()
+        Market_stockObj = db. session.query(Market_Stock).filter(Market_Stock.stock_ticker == stock).first()
+        UserObj = db.session.query(Users).filter(Users.user_email == userEmail).first()
+        if (user_inventoryObj == None):
+            #user does not have any existing stock
+
+            ##new Transaction!!!
+            newTransaction = User_Transactions(
+                stock_ticker = stock,
+                sell_buy = True,
+                price_at_purchase = Market_stockObj.stock_price,
+                purchase_quantity = num_stocks,
+                user_email = userEmail
+            )
+            db.session.add(newTransaction)
+            db.session.commit()
+            #decrease available stocks in market
+            setattr(Market_stockObj, 'stock_quantity', Market_stockObj.stock_quantity - int(num_stocks))
+            db.session.commit()
+            #decrease cash
+            cashValue = Market_stockObj.stock_price * int(num_stocks)
+            setattr(UserObj, 'cash', UserObj.cash - cashValue)
+            db.session.commit()
+            #new user_stock obj
+            NewStockInventory = User_Stock (
+                user_email = userEmail,
+                stock_ticker = stock,
+                user_quantity = num_stocks
+            )
+            db.session.add(NewStockInventory)
+            db.session.commit()
+
+            return redirect(url_for('dashboard_view'))
+        else:
+            ##user already has stock, bump count
+
+            #new transaction
+            newTransaction = User_Transactions(
+                stock_ticker = stock,
+                sell_buy = True,
+                price_at_purchase = Market_stockObj.stock_price,
+                purchase_quantity = num_stocks,
+                user_email = userEmail
+            )
+            db.session.add(newTransaction)
+            db.session.commit()
+            #decrease availble stocks in market
+            setattr(Market_stockObj, 'stock_quantity', Market_stockObj.stock_quantity - int(num_stocks))
+            db.session.commit()
+            #decrease cash
+            cashValue = Market_stockObj.stock_price * int(num_stocks)
+            setattr(UserObj, 'cash', UserObj.cash - cashValue)
+            db.session.commit()
+            #update inventory
+            setattr(user_inventoryObj, 'user_quantity', user_inventoryObj.user_quantity + int(num_stocks))
+            db.session.commit()
+
+            return redirect(url_for('dashboard_view'))
     return "Buy Stocks page (To be implemented)"
 
 @app.route('/add_cash', methods=['GET', 'POST'])
@@ -221,8 +308,6 @@ def sell_stocks():
         db.session.commit()
         print("sold stock from user")
         print(db.session.query(User_Stock).filter(User_Stock.stock_ticker == stock, User_Stock.user_email == current_user.user_email).first())
-
-#<<<<<<< Updated upstream
         #add cash to user
         user_obj = db.session.query(Users).filter(Users.user_email == userEmail).first()
         market_stockObj = db.session.query(Market_Stock).filter(Market_Stock.stock_ticker == stock).first()
@@ -230,13 +315,8 @@ def sell_stocks():
         setattr(user_obj, 'cash', user_obj.cash + cashValue)
         db.session.commit()
         print("added cash to user profile")
-#=======
-#<<<<<<< HEAD
         num_stocks = int(num_stocks)
         total_stocks = 50  # Replace with actual stock quantity logic
-#>>>>>>> Stashed changes
-
-        #add new transaction log
         newTransaction = User_Transactions(
             stock_ticker = stock,
             sell_buy = False,
@@ -251,7 +331,7 @@ def sell_stocks():
         return redirect(url_for('dashboard_view'))
 
     if request.method == 'GET':
-        enteredStock = request.args.get('stockToAction', None)
+        enteredStock = request.args.get('stock')
         print(enteredStock)
         userStockObj = db.session.query(User_Stock).filter(User_Stock.stock_ticker == enteredStock, User_Stock.user_email == current_user.user_email).first()
         stockObj = db.session.query(Market_Stock).filter(Market_Stock.stock_ticker == enteredStock).first()

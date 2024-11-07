@@ -58,19 +58,6 @@
         <!-- Main Dashboard (Center Section) -->
          
         <div class="col-md-6">
-            <form method="GET" action="{{ url_for('sell_stocks') }}">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <label for="stockToAction" class="form-label">Stock Ticker</label>
-                            <!-- Input field for the user's email -->
-                            <input type="stockToAction" class="form-control" id="stockToAction" name="stockToAction" 
-                                   placeholder="Please enter the stock ticker" required>
-                        </div>
-                        <button type="submit" class="btn btn-danger mb-3">Sell</button> <!-- Sell button -->
-                    </div>
-                </div>
-            </form>
             <!-- Stock overview chart section -->
             <div class="card mt-4">
                 <div class="card-body">
@@ -81,12 +68,6 @@
 
             <!-- Action buttons for buying stocks and adding cash -->
             <div class="row mt-4">
-                <!-- Buy Stocks button -->
-                <div class="col">
-                    <a class="btn btn-primary w-100" href="{{ url_for('buy_stocks') }}">
-                        <i class="fas fa-shopping-cart"></i> Buy Stocks
-                    </a>
-                </div>
                 <!-- Add Cash button -->
                 <div class="col">
                     <a class="btn btn-success w-100" href="{{ url_for('add_cash') }}">
@@ -94,11 +75,7 @@
                     </a>
                 </div>
             </div> 
-        </div>
-
-        <!-- Stocks Overview Section (Right Sidebar) -->
-        <div class="col-md-3 ml-n3">
-            <div class="row">
+            <div class="row mt-4">
                 <div class="col-md-12 card mt-8">
                     <div class="card-body">
                         <h5 class="text-center">Available Stocks</h5>
@@ -112,21 +89,21 @@
                                         <th>Volume</th>
                                         <th>Market Cap</th>
                                         <th>Opening Price</th>
-                                        <th>High</th>
-                                        <th>Low</th>
+                                        <th>Click to buy</th>
+                                        <th>Click to Sell</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                 {% for stock in allstocks %}
-                                    <tr>
-                                        <td>{{stock.stock_ticker}}</td>
-                                        <td>{{stock.stock_price}}</td>
-                                        <td>{{stock.stock_quantity}}</td>
-                                        <td>{{stock.stock_price}}</td>
-                                        <td>{{stock.stock_price}}</td>
-                                        <td>{{stock.stock_high}}</td>
-                                        <td>{{stock.stock_low}}</td>
-                                    </tr>
+                                <tr>
+                                    <td>{{stock.stock_ticker}}</td>
+                                    <td>{{stock.stock_price}}</td>
+                                    <td>{{stock.stock_quantity}}</td>
+                                    <td>{{stock.stock_price}}</td>
+                                    <td>{{stock.stock_price}}</td>
+                                    <td><a href={{ url_for('buy_stocks',stock=stock.stock_ticker)}}>Buy</a></td>
+                                    <td><a href={{ url_for('sell_stocks',stock=stock.stock_ticker)}}>Sell</a></td>
+                                </tr>
                                 {% endfor %}
                                 </tbody>
                             </table>
@@ -134,6 +111,10 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Stocks Overview Section (Right Sidebar) -->
+        <div class="col-md-3 ml-n3">
         </div>
     </div>
 </div>
