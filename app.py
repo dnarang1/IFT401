@@ -413,27 +413,34 @@ def admin_add_stock():
 @login_required
 def manage_users():
     if request.method == 'POST':
-        # Handle form submission for updating user details
-        user_email = request.form['user_email']
-        new_email = request.form['new_email']
-        is_admin = 'isadmin' in request.form
-        is_locked = 'islocked' in request.form
+        for key in request.form:
+            if key.startswith("user_email_"):
+                user_email = request.form[key]  # Extract original email
+                new_email = request.form.get(f"email_{user_email}", user_email)
+                new_fname = request.form.get(f"fname_{user_email}", "")  # Get new first name
+                new_lname = request.form.get(f"lname_{user_email}", "")  # Get new last name
+                new_cash = request.form.get(f"cash_{user_email}", "0")  # Get new cash value
+                is_admin = f"isadmin_{user_email}" in request.form
+                is_locked = f"islocked_{user_email}" in request.form
 
-        # Update the user details
-        update_user_email(user_email, new_email)  
-        update_user_status(user_email, is_admin, is_locked)  
+                # Update the user details
+                update_user_details(user_email, new_email, new_fname, new_lname, new_cash)
+                update_user_status(user_email, is_admin, is_locked)
 
         flash('User details updated successfully!', 'success')
-        return redirect(url_for('manage_users'))  # Redirect to avoid re-posting on refresh
+        return redirect(url_for('manage_users'))
 
     users = get_all_users()  # Fetch all users from the database
     return render_template('manage_users.html', users=users)
 
-def update_user_email(old_email, new_email):
+def update_user_details(old_email, new_email, new_fname, new_lname, new_cash):
     user = Users.query.filter_by(user_email=old_email).first()
     if user:
         user.user_email = new_email
-        db.session.commit()  # Commit the change to the database
+        user.fname = new_fname
+        user.lname = new_lname
+        user.cash = float(new_cash)  # Ensure cash is stored as a numeric value
+        db.session.commit()  # Commit changes to the database
     else:
         print(f"User with email {old_email} not found.")
 

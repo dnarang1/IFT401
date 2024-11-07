@@ -56,6 +56,8 @@
             <tbody>
                 {% for user in users %}
                 <tr>
+                    <!-- Hidden field to pass original user_email to backend -->
+                    <input type="hidden" name="user_email_{{ user.user_email }}" value="{{ user.user_email }}" />
                     <td id="email_{{ user.user_email }}">
                         <input type="text" name="email_{{ user.user_email }}" value="{{ user.user_email }}" />
                     </td>
