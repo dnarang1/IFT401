@@ -278,16 +278,11 @@ def add_cash():
     if request.method == 'POST':
         amount = float(request.form['amount'])
         success_rate = random.choice([True, False])
-
-        if success_rate:
-            new_cash = Decimal(current_cash) + Decimal(amount)
-            flash(f'Success! ${amount} has been added to your account. Your new balance is ${new_cash:.2f}.', 'success')
-            setattr(userObj, 'cash',new_cash)
-            db.session.commit()
-            return redirect(url_for('dashboard_view'))
-        else:
-            flash('Error: Failed to add cash. Please try again.', 'danger')
-            return redirect(url_for('add_cash'))
+        new_cash = Decimal(current_cash) + Decimal(amount)
+        flash(f'Success! ${amount} has been added to your account. Your new balance is ${new_cash:.2f}.', 'success')
+        setattr(userObj, 'cash',new_cash)
+        db.session.commit()
+        return redirect(url_for('dashboard_view'))
     if request.method == 'GET':
         #get current cash
 
