@@ -41,7 +41,8 @@ class Users(db.Model, UserMixin):
 
     def get_id(self):
         return self.user_email
-# Define other models
+
+# Define user stock
 class User_Stock(db.Model):
     __tablename__ = 'user_stock'
     id = db.Column(db.Integer, primary_key=True)
@@ -470,23 +471,85 @@ def manage_stocks():
     return render_template('manage_stocks.html')
 
 @app.route('/admin/manage_users/review_transactions')
+@login_required
 def review_transactions():
     if not current_user.isadmin:
        return "ADMIN ACCESS ONLY", 403
     
     return render_template('review_transactions.html')
 @app.route('/admin/manage_users/generate_reports')
+@login_required
 def generate_reports():
     if not current_user.isadmin:
         return "ADMIN ACCESS ONLY", 403
     
     return render_template('generate_reports.html')
 @app.route('/admin/site_settings')
+@login_required
 def site_settings():
     if not current_user.isadmin:
         return "ADMIN ACCESS ONLY", 403
-    
     return render_template('site_settings.html')
+
+@app.route('/admin/site_settings/save_holiday_settings', methods=['POST'])
+@login_required
+def save_holiday_settings():
+    if not current_user.isadmin:
+        return "ADMIN ACCESS ONLY", 403
+    try:
+        holiday_date = request.form['holiday_date']
+        is_closed = 'market_closed' in request.form  # Checkbox checked if present in form data
+
+        # Convert date to DOY (Day of Year)
+        doy = datetime.strptime(holiday_date, '%Y-%m-%d').timetuple().tm_yday
+
+        # Find or create the market day entry
+        market_day = Market.query.get(doy) or Market(DOY=doy)
+
+        if is_closed:
+            # Set as closed for the day
+            market_day.isOpen = False
+            market_day.openHour = None  # Null for closed day
+            market_day.closeHour = None
+        else:
+            # Set open hours for the holiday if the market is not closed
+            open_hour = int(request.form['holiday_start_time'].split(':')[0])
+            close_hour = int(request.form['holiday_end_time'].split(':')[0])
+            market_day.isOpen = True
+            market_day.openHour = open_hour
+            market_day.closeHour = close_hour
+
+        db.session.add(market_day)
+        db.session.commit()
+        return redirect(url_for('site_settings'))  # Redirect to the settings page
+    except Exception as e:
+        return f"Error saving holiday settings: {e}", 500
+
+
+@app.route('/admin/site_settings/save_market_hours', methods=['POST'])
+@login_required
+def save_market_hours():
+    try:
+        market_start_time = request.form['market_start_time']
+        market_end_time = request.form['market_end_time']
+
+        open_hour = int(market_start_time.split(':')[0])
+        close_hour = int(market_end_time.split(':')[0])
+
+        # Update market hours for each day in the year
+        for doy in range(1, 366):  # Loop through all DOY (1-365 or 1-366 in a leap year)
+            market_day = Market.query.get(doy) or Market(DOY=doy)
+            market_day.isOpen = True  # General market days are open by default
+            market_day.openHour = open_hour
+            market_day.closeHour = close_hour
+            db.session.add(market_day)
+
+        db.session.commit()
+        return redirect(url_for('site_settings'))  # Redirect to the settings page
+    except Exception as e:
+        return f"Error saving market hours: {e}", 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
