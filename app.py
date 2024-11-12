@@ -273,21 +273,43 @@ def buy_stocks():
 @login_required
 def add_cash():
     username = current_user.user_email  # Use the logged-in user's email
-    current_cash = 1000.00  # This should ideally be fetched from the database
+    userObj = db.session.query(Users).filter(Users.user_email == username).first()
+    current_cash = userObj.cash
     if request.method == 'POST':
         amount = float(request.form['amount'])
-        
         success_rate = random.choice([True, False])
 
         if success_rate:
-            new_cash = current_cash + amount
+            new_cash = Decimal(current_cash) + Decimal(amount)
             flash(f'Success! ${amount} has been added to your account. Your new balance is ${new_cash:.2f}.', 'success')
+            setattr(userObj, 'cash',new_cash)
+            db.session.commit()
             return redirect(url_for('dashboard_view'))
         else:
             flash('Error: Failed to add cash. Please try again.', 'danger')
             return redirect(url_for('add_cash'))
+    if request.method == 'GET':
+        #get current cash
 
-    return render_template('add_cash.html', username=username, current_cash=current_cash)
+        
+        return render_template('add_cash.html',username=username, current_cash=current_cash)
+    
+@app.route('/withdraw_cash', methods=['GET','POST'])
+@login_required
+def withdraw_cash():
+    username = current_user.user_email  # Use the logged-in user's email
+    userObj = db.session.query(Users).filter(Users.user_email == username).first()
+    current_cash = userObj.cash
+    if request.method == 'GET':
+        return render_template('withdraw_cash.html',totalCash=current_cash,username=username)
+    if request.method == 'POST':
+        amount = float(request.form['amount'])
+        new_cash = Decimal(current_cash) - Decimal(amount)
+        setattr(userObj, 'cash',new_cash)
+        db.session.commit()
+        return redirect(url_for('dashboard_view'))
+
+    return "it broke"
 
 @app.route('/logout')
 @login_required
