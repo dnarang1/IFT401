@@ -45,6 +45,7 @@
                     <img src="https://via.placeholder.com/100" alt="Profile Icon" class="img-fluid rounded-circle mb-3">
                     <h4>{{ username }}</h4> <!-- Display username dynamically -->
                     <p>Current Cash: ${{ cash }}</p> <!-- Display current cash -->
+                    <p>Portfolio Value: ${{totalPortfolioValue}}</p>
                     
 
                     <!-- User Settings button -->
@@ -59,7 +60,7 @@
          
         <div class="col-md-6">
             <!-- Stock overview chart section -->
-            <div class="card mt-4">
+            <div class="card mt">
                 <div class="card-body">
                     <h5 class="text-center">Stock Overview</h5>
                     <canvas id="stocksChart" style="height: 200px;"></canvas> <!-- ChartJS for displaying stock data -->
@@ -120,6 +121,39 @@
 
         <!-- Stocks Overview Section (Right Sidebar) -->
         <div class="col-md-3 ml-n3">
+            <div class="col-md-12 card mt-8">
+                <div class="card-body">
+                    <h5 class="text-center">Transaction Log</h5>
+                    <div class="table-responsive">
+                        <!-- Table displaying available stock data -->
+                        <table class="table table-striped table-bordered w-100">
+                            <thead>
+                                <tr>
+                                    <th>Ticker</th>
+                                    <th>Price</th>
+                                    <th>Volume</th>
+                                    <th>buy/sold</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for transaction in transcationLog %}
+                            <tr>
+                                <td>{{transaction.stock_ticker}}</td>
+                                <td>{{transaction.price_at_purchase}}</td>
+                                <td>{{transaction.purchase_quantity}}</td>
+                                <!--<td>{{transaction.sell_buy}}</td> -->
+                                {% if transaction.sell_buy == True %}
+                                <td>Buy</td>
+                                {% else %}
+                                <td>Sell</td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

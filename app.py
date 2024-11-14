@@ -172,11 +172,21 @@ def dashboard_view():
     userStocks = db.session.query(User_Stock).filter(User_Stock.user_email == username).all()
     listOfUserStock = []
     stockData = []
+    totalPortfolioValue=0
     for item in userStocks:
         listOfUserStock.append(item.stock_ticker)
         stockData.append(item.user_quantity)
+        thisStock = market_stockObj = db.session.query(Market_Stock).filter(Market_Stock.stock_ticker == item.stock_ticker).first()
+        totalPortfolioValue += thisStock.stock_price * item.user_quantity
 
-    return render_template('dashboard.html', username=username, cash=cash, allstocks=AllMarketStocks, ownedStocklables=listOfUserStock, data=stockData)
+    
+
+
+    #gather transaction log for user
+    userTransactionLog = db.session.query(User_Transactions).filter(User_Transactions.user_email == username).all()
+
+
+    return render_template('dashboard.html', username=username, cash=cash, allstocks=AllMarketStocks, ownedStocklables=listOfUserStock, data=stockData,transcationLog=userTransactionLog,totalPortfolioValue=totalPortfolioValue)
 
 @app.route('/buy_stocks', methods=['GET', 'POST'])
 @login_required
@@ -487,13 +497,22 @@ def manage_stocks():
     # Add logic to handle stock management
     return render_template('manage_stocks.html')
 
-@app.route('/admin/manage_users/review_transactions')
+@app.route('/admin/manage_users/review_transactions', methods=['GET','POST'])
 @login_required
 def review_transactions():
     if not current_user.isadmin:
        return "ADMIN ACCESS ONLY", 403
-    
-    return render_template('review_transactions.html')
+    if request.method == 'GET':
+        userTransactionLog = db.session.query(User_Transactions).all()
+        return render_template('review_transactions.html',transcationLog=userTransactionLog)
+    if request.method == 'POST':
+        userEmail = request.form['email']
+        userTransactionLog = db.session.query(User_Transactions).filter(User_Transactions.user_email == userEmail).all()
+        return render_template('review_transactions.html',transcationLog=userTransactionLog)
+    return render_template('review_transactions.html',transcationLog=userTransactionLog)
+
+
+
 @app.route('/admin/manage_users/generate_reports')
 @login_required
 def generate_reports():
