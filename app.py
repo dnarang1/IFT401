@@ -14,6 +14,7 @@ import base64
 import random
 from random import uniform
 from decimal import Decimal
+import time
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
@@ -180,14 +181,22 @@ def dashboard_view():
         thisStock = market_stockObj = db.session.query(Market_Stock).filter(Market_Stock.stock_ticker == item.stock_ticker).first()
         totalPortfolioValue += thisStock.stock_price * item.user_quantity
 
-    
-
-
     #gather transaction log for user
     userTransactionLog = db.session.query(User_Transactions).filter(User_Transactions.user_email == username).all()
 
+    #check if market is open
+    todayFormatted = datetime.now().date()
+    MarketTodayHours = db.session.query(Market).filter(Market.date == todayFormatted).first()
+    nowHour = int(time.strftime("%H"))
+    print("Market is open:", MarketTodayHours.isOpen,". Market open hour:,",MarketTodayHours.openHour,". Market close hour:",MarketTodayHours.closeHour,". Now Hour: ",nowHour)
+    if (MarketTodayHours.isOpen and nowHour > int(MarketTodayHours.openHour) and nowHour < MarketTodayHours.closeHour):
+        print("today is open")
+        isMarketOpen = True
+    else:
+        isMarketOpen = False
 
-    return render_template('dashboard.html', username=username, cash=cash, allstocks=AllMarketStocks, ownedStocklables=listOfUserStock, data=stockData,transcationLog=userTransactionLog,totalPortfolioValue=totalPortfolioValue)
+
+    return render_template('dashboard.html', username=username, cash=cash, allstocks=AllMarketStocks, ownedStocklables=listOfUserStock, data=stockData,transcationLog=userTransactionLog,totalPortfolioValue=totalPortfolioValue,isMarketOpen=isMarketOpen)
 
 @app.route('/buy_stocks', methods=['GET', 'POST'])
 @login_required

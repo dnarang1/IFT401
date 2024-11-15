@@ -81,6 +81,12 @@
                     </a>
                 </div>
             </div> 
+            {% if isMarketOpen %}
+            {% else %}
+            <div class="row mt-4">
+                <a class="btn btn-danger w-100">Market is closed!</a>
+            </div>
+            {% endif %}
             <div class="row mt-4">
                 <div class="col-md-12 card mt-8">
                     <div class="card-body">
@@ -107,8 +113,10 @@
                                     <td>{{stock.stock_quantity}}</td>
                                     <td>{{stock.stock_price}}</td>
                                     <td>{{stock.stock_price}}</td>
+                                    {% if isMarketOpen %}
                                     <td><a href={{ url_for('buy_stocks',stock=stock.stock_ticker)}}>Buy</a></td>
                                     <td><a href={{ url_for('sell_stocks',stock=stock.stock_ticker)}}>Sell</a></td>
+                                    {% endif %}
                                 </tr>
                                 {% endfor %}
                                 </tbody>
